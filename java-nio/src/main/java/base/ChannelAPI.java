@@ -23,6 +23,8 @@ import java.util.concurrent.ThreadPoolExecutor;
  * DatagramChannel：用于 UDP 连接的接收和发送
  * SocketChannel：把它理解为 TCP 连接通道，可读可写，对于一个 TCP 连接，客户端服务端各有一个SocketChannel对应
  * ServerSocketChannel：TCP 对应的服务端，用于监听某个端口进来的请求。
+ *
+ * 注意：FileChannel 不支持非阻塞模式，文件 IO 在所有的操作系统中都不支持非阻塞模式
  */
 @Slf4j
 public class ChannelAPI {

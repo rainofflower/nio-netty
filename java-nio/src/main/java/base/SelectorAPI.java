@@ -11,9 +11,31 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
+ * Selector 与 非阻塞IO
+ *
  * NIO 中 Selector 是对底层操作系统实现的一个抽象，管理通道状态其实都是底层系统实现的，不同操作系统底层实现不一样，
  * 比如2002 年 随 Linux 内核 2.5.44 发布的 epoll ，Windows 平台的非阻塞 IO ，
  * 但是我们只需要面向Selector编程就可以了，毕竟JVM是一个屏蔽实现底层的平台
+ *
+ * Selector中的几个常用方法
+ *  1、select()
+ *
+ * 调用此方法，会将上次 select 之后的准备好的 channel 对应的 SelectionKey 复制到 selected set 中。
+ * 如果没有任何通道准备好，这个方法会阻塞，直到至少有一个通道准备好。
+ *
+ *  2、selectNow()
+ *
+ * 功能和 select 一样，区别在于如果没有准备好的通道，那么此方法会立即返回 0。
+ *
+ *  3、select(long timeout)
+ *
+ * 看了前面两个，这个应该很好理解了，如果没有通道准备好，此方法会等待一会
+ *
+ *  4、wakeup()
+ *
+ * 这个方法是用来唤醒等待在 select() 和 select(timeout) 上的线程的。
+ * 如果 wakeup() 先被调用，此时没有线程在 select 上阻塞，那么之后的一个 select() 或 select(timeout) 会立即返回，而不会阻塞，
+ * 当然，它只会作用一次。
  */
 @Slf4j
 public class SelectorAPI {
