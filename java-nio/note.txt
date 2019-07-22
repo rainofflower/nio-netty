@@ -1,0 +1,4 @@
+io->nio->aio
+Blocking IO -> Non-Blocking IO -> Asynchronous IO 优化目的：
+
+减少过多的线程带来的内存消耗和 CPU 在线程调度上的开销

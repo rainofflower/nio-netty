@@ -28,10 +28,22 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class ChannelAPI {
 
     /**
+     *
+     * 阻塞IO
+     *
+     *
      * ServerSocketChannel 不和 Buffer 打交道，
      * 因为它并不实际处理数据，它一旦接收到请求后，实例化 SocketChannel，之后在这个连接通道上的数据传递它就不管了，
      * 因为它需要继续监听端口，等待下一个连接
-     * @throws IOException
+     *
+     * Blocking IO模式性能瓶颈：
+     * socketChannel.read()和socketChannel.write()会阻塞当前线程，而每个线程都需要一部分内存，不工作线程会白白浪费内存，
+     * 同时，线程量大了之后线程切换的开销非常大。
+     * --> accept() 是一个阻塞操作，当 accept() 返回的时候，代表有一个连接可以使用了，我们这里是马上就提交线程池来处理这个 SocketChannel 了，
+     * 但是，这里不代表对方就将数据传输过来了。所以，SocketChannel#read 方法将阻塞，等待数据，明显这个等待是不值得的。
+     * 同理，write 方法也需要等待通道可写才能执行写入操作，这边的阻塞等待也是不值得的
+     *
+     * 以下为 Blocking IO 示例
      */
     @Test
     public void ServerSocketChannel() throws IOException {
@@ -75,6 +87,9 @@ public class ChannelAPI {
         }
     }
 
+    /**
+     * 客户端
+     */
     @Test
     public void SocketChannel() throws IOException {
         SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress("localhost", 8080));
