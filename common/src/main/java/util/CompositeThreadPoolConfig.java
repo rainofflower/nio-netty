@@ -22,10 +22,12 @@ public class CompositeThreadPoolConfig {
 
     @Bean
     public ThreadPoolExecutor threadPoolExecutor(){
-        return new ThreadPoolExecutor(corePoolSize,
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize,
                 maxPoolSize,
                 keepAliveSeconds,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(queueCapacity));
+        executor.prestartAllCoreThreads();
+        return executor;
     }
 }

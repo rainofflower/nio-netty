@@ -62,6 +62,7 @@ public class SelectorAPI {
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
         while(true){
+            //selector的select方法是个阻塞方法，具体看select方法源码上的注释
             int readyChannels = selector.select();
             if(readyChannels == 0){
                 continue;
@@ -72,9 +73,12 @@ public class SelectorAPI {
                 SelectionKey selectionKey = iterator.next();
                 iterator.remove();
                 if(selectionKey.isAcceptable()){
+                    ServerSocketChannel server = (ServerSocketChannel) selectionKey.channel();
                     // 有已经接受的新的到服务端的连接
-                    SocketChannel socketChannel = serverSocketChannel.accept();
-
+                    SocketChannel socketChannel = server.accept();
+                    if(socketChannel == null){
+                        continue;
+                    }
                     // 有新的连接并不代表这个通道就有数据，
                     // 这里将这个新的 SocketChannel 注册到 Selector，监听 OP_READ 事件，等待数据
                     socketChannel.configureBlocking(false);
@@ -89,8 +93,9 @@ public class SelectorAPI {
                     if(num > 0){
                         // 处理进来的数据
                         log.info("收到数据："+new String(buffer.array()).trim());
-                        ByteBuffer response = ByteBuffer.wrap("返回数据...".getBytes());
+                        ByteBuffer response = ByteBuffer.wrap("服务端返回数据...".getBytes());
                         socketChannel.write(response);
+                        socketChannel.shutdownOutput();
                     }
                     else if(num == -1){
                         // -1 代表连接已经关闭

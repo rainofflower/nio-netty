@@ -109,7 +109,7 @@ public class ChannelAPI {
         //
 //        buffer.clear();
         ByteBuffer buffer = ByteBuffer.allocate(20);
-        buffer.put("good night".getBytes()).flip();
+        buffer.put("good night 2".getBytes()).flip();
         socketChannel.write(buffer);
 
         // 读取响应
@@ -177,5 +177,70 @@ public class ChannelAPI {
             fileChannel.write(byteBuffer);
         }
         fileInputStream.close();
+    }
+
+    /**
+     * 最基础的文件复制
+     * 循环从源channel读取数据，写入到目标channel中
+     */
+    @Test
+    public void copyFile_base() throws IOException {
+        File srcFile = new File("F:\\server\\resource\\data.txt");
+        File destFile = new File("F:\\server\\resource\\copyData.txt");
+        if(!destFile.exists()){
+            destFile.createNewFile();
+        }
+        FileInputStream fileInputStream = null;
+        FileOutputStream fileOutputStream = null;
+        FileChannel inChannel = null;
+        FileChannel outChannel = null;
+        try{
+            fileInputStream = new FileInputStream(srcFile);
+            fileOutputStream = new FileOutputStream(destFile);
+            inChannel = fileInputStream.getChannel();
+            outChannel = fileOutputStream.getChannel();
+            ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+            while(inChannel.read(byteBuffer) != -1){
+                byteBuffer.flip();
+                while(outChannel.write(byteBuffer) != 0);
+                byteBuffer.clear();
+            }
+            outChannel.force(true);
+        }finally {
+            if(fileInputStream != null){
+                fileInputStream.close();
+            }
+            if(fileOutputStream != null){
+                fileOutputStream.close();
+            }
+        }
+    }
+
+    /**
+     * 使用transferTo、transferFrom高效复制文件
+     */
+    @Test
+    public void copyFile_transfer() throws IOException {
+        File srcFile = new File("F:\\server\\resource\\data.txt");
+        File destFile = new File("F:\\server\\resource\\copyData-transfer.txt");
+        if(!destFile.exists()){
+            destFile.createNewFile();
+        }
+        FileInputStream fileInputStream = null;
+        FileOutputStream fileOutputStream = null;
+        try{
+            fileInputStream = new FileInputStream(srcFile);
+            fileOutputStream = new FileOutputStream(destFile);
+            FileChannel inChannel = fileInputStream.getChannel();
+            FileChannel outChannel = fileOutputStream.getChannel();
+            inChannel.transferTo(0,inChannel.size(), outChannel);
+        }finally {
+            if(fileInputStream != null){
+                fileInputStream.close();
+            }
+            if(fileOutputStream != null){
+                fileOutputStream.close();
+            }
+        }
     }
 }

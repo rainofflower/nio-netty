@@ -1,20 +1,16 @@
 package base;
 
-import com.sun.xml.internal.ws.api.message.Attachment;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import util.CompositeThreadPoolConfig;
 
 import java.io.IOException;
-import java.lang.annotation.Inherited;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.AsynchronousServerSocketChannel;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
+import java.nio.channels.*;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
@@ -48,7 +44,19 @@ public class AIO {
 
     @Test
     public void AsynchronousServerSocketChannel() throws IOException {
-        // 实例化，并监听端口
+        /**
+         * 实例化，并监听端口
+         *  AsynchronousServerSocketChannel.open()执行完了就可以看到后台默认已经启动了cpu最大逻辑线程数了
+         * （Intel 8750h 有12个逻辑线程数，因此可以看到12个工作线程），其实就是用来处理异步任务的。
+         *
+         *  线程池也可以自己设置
+         *  只需调用AsynchronousChannelGroup 里的静态方法就能返回一个 group 了，将该group传递到open方法就可以使用自定义的线程池了
+         *
+         *  AsynchronousChannelGroup asynchronousChannelGroup = AsynchronousChannelGroup.withThreadPool(new CompositeThreadPoolConfig().threadPoolExecutor());
+         *  AsynchronousServerSocketChannel.open(asynchronousChannelGroup);
+         *  AsynchronousSocketChannel.open(asynchronousChannelGroup);
+         */
+
         AsynchronousServerSocketChannel server =
                 AsynchronousServerSocketChannel.open().bind(new InetSocketAddress(8080));
 
