@@ -12,8 +12,12 @@ public class MultiThreadReactorTest {
     @Test
     public void startServer() throws IOException, InterruptedException {
         MultiThreadEchoServerReactor multiThreadEchoServerReactor = new MultiThreadEchoServerReactor(8200);
-        new Thread(multiThreadEchoServerReactor.subReactors[0]).start();
-        new Thread(multiThreadEchoServerReactor.subReactors[1]).start();
+        Thread thread1 = new Thread(multiThreadEchoServerReactor.subReactors[0]);
+        Thread thread2 = new Thread(multiThreadEchoServerReactor.subReactors[1]);
+        thread1.start();
+        thread2.start();
+        thread1.join();
+        thread2.join();
     }
 
     /**

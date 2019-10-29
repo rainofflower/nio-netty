@@ -21,7 +21,7 @@ public class SingleThreadReactorTest {
     public void SocketChannel() throws IOException {
         SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress("localhost", 8100));
         ByteBuffer buffer = ByteBuffer.allocate(20);
-        buffer.put("good night 222".getBytes()).flip();
+        buffer.put("hello".getBytes()).flip();
         socketChannel.write(buffer);
 
         // 读取响应
