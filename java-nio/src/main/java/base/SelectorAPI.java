@@ -88,22 +88,31 @@ public class SelectorAPI {
                     // 有数据可读
                     // 上面一个 if 分支中注册了监听 OP_READ 事件的 SocketChannel
                     SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-                    ByteBuffer buffer = ByteBuffer.allocate(1024);
-                    int num = socketChannel.read(buffer);
-                    if(num > 0){
-                        // 处理进来的数据
-                        log.info("收到数据："+new String(buffer.array()).trim());
-                        ByteBuffer response = ByteBuffer.wrap("服务端返回数据...".getBytes());
-                        socketChannel.write(response);
-                        socketChannel.shutdownOutput();
-                    }
-                    else if(num == -1){
-                        // -1 代表连接已经关闭
-                        log.info("连接已关闭");
-                        socketChannel.close();
+                    try{
+                        ByteBuffer buffer = ByteBuffer.allocate(1024);
+                        int num = socketChannel.read(buffer);
+                        if(num > 0){
+                            // 处理进来的数据
+                            String msg = new String(buffer.array()).trim();
+                            log.info("收到数据："+msg);
+                            ByteBuffer response = ByteBuffer.wrap(("服务端返回数据: "+msg).getBytes());
+                            socketChannel.write(response);
+                            socketChannel.shutdownOutput();
+                        }
+                        else if(num == -1){
+                            // -1 代表连接已经关闭
+                            log.info("连接已关闭");
+                            socketChannel.close();
+                        }
+                    }catch (IOException e){
+                        e.printStackTrace();
+                        if(socketChannel!=null){
+                            socketChannel.close();
+                        }
                     }
                 }
             }
+
         }
     }
 }
