@@ -41,7 +41,44 @@ public class MultiThreadReactorTest {
     public static void startClient() throws IOException {
         SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress("localhost", 8200));
         ByteBuffer buffer = ByteBuffer.allocate(1024);
-        Thread readThread = new Thread(() -> {
+        Thread readThread = new Thread(new ChannelInboundHandler(socketChannel));
+        readThread.setDaemon(true);
+        readThread.start();
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("输入消息内容：");
+        try{
+            while(true){
+                try{
+                    String input = scanner.nextLine();
+                    if(input != null && input.equals("exit")){
+                        return;
+                    }
+                    else{
+                        buffer.put(input.getBytes()).flip();
+                        socketChannel.write(buffer);
+                        buffer.clear();
+                    }
+                }catch (IOException e){
+                    e.printStackTrace();
+                    return;
+                }
+            }
+        }finally {
+            if(socketChannel != null){
+                socketChannel.close();
+            }
+        }
+    }
+
+    static class ChannelInboundHandler implements Runnable{
+
+        final SocketChannel socketChannel;
+
+        ChannelInboundHandler(SocketChannel socketChannel){
+            this.socketChannel = socketChannel;
+        }
+
+        public void run() {
             while(true){
                 try{
                     // 读取响应
@@ -65,33 +102,6 @@ public class MultiThreadReactorTest {
                         } catch (IOException e1) {
                             //
                         }
-                    }
-                }
-            }
-        });
-        readThread.setDaemon(true);
-        readThread.start();
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("输入消息内容：");
-        while(true){
-            try{
-                String input = scanner.nextLine();
-                if(input != null && input.equals("exit")){
-                    return;
-                }
-                else{
-                    buffer.put(input.getBytes()).flip();
-                    socketChannel.write(buffer);
-                    buffer.clear();
-                }
-            }catch (IOException e){
-                e.printStackTrace();
-                if(socketChannel != null){
-                    try {
-                        socketChannel.close();
-                        return;
-                    } catch (IOException e1) {
-                        //
                     }
                 }
             }
