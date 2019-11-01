@@ -1,5 +1,7 @@
 package reactor.singlethread;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -8,15 +10,19 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Reactor反应器 单线程版
  */
+@Slf4j
 public class EchoServerReactor implements Runnable{
 
     final Selector selector;
 
     final ServerSocketChannel serverSocketChannel;
+
+    AtomicLong count = new AtomicLong(0);
 
     EchoServerReactor(int port) throws IOException {
         selector = Selector.open();
@@ -70,6 +76,7 @@ public class EchoServerReactor implements Runnable{
             try {
                 //接收新连接
                 SocketChannel socketChannel = serverSocketChannel.accept();
+                log.info("已收到连接数：{}",count.incrementAndGet());
                 if(socketChannel != null){
                     new EchoHandler(socketChannel,selector);
                 }

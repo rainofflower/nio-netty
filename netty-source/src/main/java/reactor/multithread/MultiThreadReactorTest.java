@@ -19,11 +19,11 @@ public class MultiThreadReactorTest {
      */
     @Test
     public void startServer() throws IOException {
-        MultiThreadEchoServerReactor multiThreadEchoServerReactor = new MultiThreadEchoServerReactor(8200,3);
+        MultiThreadEchoServerReactor multiThreadEchoServerReactor = new MultiThreadEchoServerReactor(8200,2);
         multiThreadEchoServerReactor.startService();
         Thread.currentThread().setName("主线程");
         while(!Thread.interrupted()){
-            LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
+            LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(Integer.MAX_VALUE));
         }
     }
 
@@ -56,6 +56,7 @@ public class MultiThreadReactorTest {
                     else{
                         buffer.put(input.getBytes()).flip();
                         socketChannel.write(buffer);
+                        //socketChannel.shutdownOutput();
                         buffer.clear();
                     }
                 }catch (IOException e){

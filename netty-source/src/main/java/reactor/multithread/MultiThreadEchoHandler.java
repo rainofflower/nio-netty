@@ -13,15 +13,18 @@ import java.util.concurrent.ExecutorService;
 @Slf4j
 public class MultiThreadEchoHandler implements Runnable{
 
+    //多线程共用byteBuffer会有并发问题，此处为压测用
+    //ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
     final SocketChannel socketChannel;
     final SelectionKey sk;
-    final ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
     static ExecutorService pool = new CompositeThreadPoolConfig().threadPoolExecutor();
-    private Object lock = new Object();
+//    private Object lock = new Object();
 
-    MultiThreadEchoHandler(Selector selector, SocketChannel socketChannel) throws IOException {
+    MultiThreadEchoHandler(MultiThreadEchoServerReactor.SubReactor reactor, SocketChannel socketChannel) throws IOException {
         this.socketChannel = socketChannel;
         socketChannel.configureBlocking(false);
+        Selector selector = reactor.selector;
+        MultiThreadEchoServerReactor.SubReactor.STATE.set(reactor, MultiThreadEchoServerReactor.SubReactor.REGISTER);
         /*
          * 唤醒selector.select()，释放SelectorImpl中的publicKeys实例的监视器锁
          *
@@ -34,6 +37,7 @@ public class MultiThreadEchoHandler implements Runnable{
         selector.wakeup();
         //仅仅取得选择键，稍后设置感兴趣的 IO 事件
         sk = socketChannel.register(selector, 0);
+        MultiThreadEchoServerReactor.SubReactor.STATE.set(reactor, MultiThreadEchoServerReactor.SubReactor.FREE);
         //将handler处理器作为选择键的附件
         sk.attach(this);
         //注册read就绪事件
@@ -50,41 +54,41 @@ public class MultiThreadEchoHandler implements Runnable{
     }
 
     public void asyncRun(){
-//        synchronized (lock){
-            try{
-                int length = 0;
-                //从通道读
-                while((length = socketChannel.read(byteBuffer)) > 0){
-                    log.info("收到数据："+new String(byteBuffer.array(),0,length));
-                }
-                //读完后，准备写入通道，byteBuffer切换为读模式
-                byteBuffer.flip();
+        try{
+            //高并发时如果为每个业务处理开辟一个byteBuffer将成为性能瓶颈
+            //如果使用池化方式，需要增加额外管理
+            ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+            int length;
+            //从通道读
+            while((length = socketChannel.read(byteBuffer)) > 0){
+                log.info("收到数据："+new String(byteBuffer.array(),0,length));
+            }
+            //读完后，准备写入通道，byteBuffer切换为读模式
+            byteBuffer.flip();
 
-                //写入通道
-                socketChannel.write(byteBuffer);
-                //写完后，准备开始从通道读，byteBuffer切换为写模式
-                byteBuffer.clear();
-                //写完后，注册read就绪事件
-                //sk.interestOps(SelectionKey.OP_READ);
-//            //读完后，注册write就绪事件
-//            sk.interestOps(SelectionKey.OP_WRITE);
-                //处理结束了，这里不能关闭select key，需要重复使用
-                //sk.cancel();
-            }catch (Exception e){
-                log.error("[EchoHandler] error "+e.getMessage());
-                if(socketChannel != null){
-                    try {
-                        socketChannel.close();
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
+            //写入通道
+            socketChannel.write(byteBuffer);
+            //shutdownOutput用于测试服务器性能，接收到数据立即返回响应
+            //多次进行数据传输时不应该关闭输出
+            //socketChannel.shutdownOutput();
+            //写完后，准备开始从通道读，byteBuffer切换为写模式
+            byteBuffer.clear();
+            //处理结束了，这里不能关闭select key，需要重复使用
+            //sk.cancel();
+        }catch (Exception e){
+            //e.printStackTrace();
+            log.error("[EchoHandler] error "+e.getMessage());
+            if(socketChannel != null){
+                try {
+                    socketChannel.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
             }
-//        }
+        }
     }
 
     class AsyncTask implements Runnable{
-
         public void run() {
             MultiThreadEchoHandler.this.asyncRun();
         }

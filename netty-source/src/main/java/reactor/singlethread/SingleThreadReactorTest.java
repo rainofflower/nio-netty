@@ -11,7 +11,7 @@ public class SingleThreadReactorTest {
 
     @Test
     public void startServer() throws IOException {
-        new EchoServerReactor(8100).run();
+        new EchoServerReactor(8200).run();
     }
 
     /**
