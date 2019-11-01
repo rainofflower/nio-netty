@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * Reactor反应器
+ * Reactor反应器 单线程版
  */
 public class EchoServerReactor implements Runnable{
 

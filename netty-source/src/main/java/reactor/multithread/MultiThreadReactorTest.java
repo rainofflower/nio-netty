@@ -19,7 +19,7 @@ public class MultiThreadReactorTest {
      */
     @Test
     public void startServer() throws IOException {
-        MultiThreadEchoServerReactor multiThreadEchoServerReactor = new MultiThreadEchoServerReactor(8200,2);
+        MultiThreadEchoServerReactor multiThreadEchoServerReactor = new MultiThreadEchoServerReactor(8200,3);
         multiThreadEchoServerReactor.startService();
         Thread.currentThread().setName("主线程");
         while(!Thread.interrupted()){

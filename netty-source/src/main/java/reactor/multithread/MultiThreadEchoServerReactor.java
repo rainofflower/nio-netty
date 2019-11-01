@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 反应器模式 多线程版本的服务端
+ */
 @Slf4j
 public class MultiThreadEchoServerReactor {
 
@@ -24,11 +27,10 @@ public class MultiThreadEchoServerReactor {
 
     SubReactor[] subReactors = null;
 
+    static final int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() << 1;
+
     MultiThreadEchoServerReactor(int port,int reactorNum) throws IOException {
-        if(reactorNum == 0){
-            log.error("反应器线程数不能等于0");
-            return;
-        }
+        reactorNum = reactorNum == 0 ? DEFAULT_THREADS : reactorNum;
         selectors = new Selector[reactorNum];
         for(int i = 0; i<reactorNum; i++){
             selectors[i] = Selector.open();
