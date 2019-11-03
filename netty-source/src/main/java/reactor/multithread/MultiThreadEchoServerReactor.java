@@ -79,12 +79,10 @@ public class MultiThreadEchoServerReactor {
         public void run() {
             while(!Thread.interrupted()){
                 //state锁未被占用才允许执行selector.select()
-                while(STATE.compareAndSet(this,FREE,SELECT)){
+                if(STATE.compareAndSet(this,FREE,SELECT)){
                     try {
                         int keyCount = selector.select();
-                        //如果锁状态未被其它线程修改，自己得释放
-                        STATE.compareAndSet(this,SELECT,FREE);
-                        log.info("{} 已收到 key的数量：{}",Thread.currentThread().getName(),selectedKeyCount.incrementAndGet());
+                        //log.info("{} 已收到 key的数量：{}",Thread.currentThread().getName(),selectedKeyCount.incrementAndGet());
                         if(keyCount == 0){
                             //log.info("selector: {}  发生中断或者调用了warkup()方法",selector);
                             continue;
@@ -93,11 +91,17 @@ public class MultiThreadEchoServerReactor {
                         Iterator<SelectionKey> it = selectionKeys.iterator();
                         while(it.hasNext()){
                             SelectionKey sk = it.next();
-                            dispatch(sk);
+                            if(sk.isValid()){
+                                if(sk.isAcceptable() || sk.isReadable())
+                                dispatch(sk);
+                            }
                         }
                         selectionKeys.clear();
                     }catch (IOException e){
                         log.error("[Selector] error "+e.getMessage());
+                    }finally {
+                        //如果锁状态未被其它线程修改，自己得释放
+                        STATE.compareAndSet(this,SELECT,FREE);
                     }
                 }
             }
