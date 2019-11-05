@@ -1,10 +1,8 @@
 package example.discard;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -29,17 +27,20 @@ public final class DiscardServer {
             ServerBootstrap b = new ServerBootstrap();
             //设置反应器线程组
             b.group(bossGroup, workerGroup)
-             //设置NIO类型的的通道
-             .channel(NioServerSocketChannel.class)
-             .handler(new LoggingHandler(LogLevel.INFO))
-             //装配子通道流水线
-             .childHandler(new ChannelInitializer<SocketChannel>() {
-                 //有连接到达时会创建一个通道
-                 public void initChannel(SocketChannel ch) {
-                     ChannelPipeline p = ch.pipeline();
-                     //流水线管理子通道中的handler处理器
-                     //向子通道流水线添加一个Handler处理器
-                     p.addLast(new DiscardServerHandler());
+                //设置NIO类型的的通道
+                    .channel(NioServerSocketChannel.class)
+                    .option(ChannelOption.SO_KEEPALIVE,true)
+                    .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                    .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                    .handler(new LoggingHandler(LogLevel.INFO))
+                     //装配子通道流水线
+                     .childHandler(new ChannelInitializer<SocketChannel>() {
+                         //有连接到达时会创建一个通道
+                         public void initChannel(SocketChannel ch) {
+                             ChannelPipeline p = ch.pipeline();
+                             //流水线管理子通道中的handler处理器
+                             //向子通道流水线添加一个Handler处理器
+                             p.addLast(new DiscardServerHandler());
                  }
              });
 

@@ -1,11 +1,11 @@
 package example.echo;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.example.echo.EchoServerHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import org.junit.Test;
@@ -28,6 +28,7 @@ public class EchoServer {
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, 100)
                 .handler(new LoggingHandler(LogLevel.INFO))
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel ch) throws Exception {
@@ -36,7 +37,7 @@ public class EchoServer {
 //                                p.addLast(sslCtx.newHandler(ch.alloc()));
 //                            }
                         //p.addLast(new LoggingHandler(LogLevel.INFO));
-                        p.addLast(new EchoServerHandler());
+                        p.addLast(EchoServerHandler.INSTANCE);
                     }
                 });
 
