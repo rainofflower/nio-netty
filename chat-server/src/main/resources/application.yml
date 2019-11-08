@@ -1,0 +1,10 @@
+server:
+  port: 8010
+logging:
+  config: classpath:logback.xml
+netty:
+  boss-threads: 1
+  worker-threads: 24
+#服务端心跳 空闲检查间隔
+heartbeat:
+  read-idle-gap: 150

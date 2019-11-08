@@ -12,6 +12,9 @@
         <module>java-nio</module>
         <module>common</module>
         <module>netty-source</module>
+        <module>chat-common</module>
+        <module>chat-server</module>
+        <module>chat-client</module>
     </modules>
 
     <properties>
@@ -31,20 +34,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.19</version>
-        </dependency>
-    </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+    </dependencies>
 
 </project>
