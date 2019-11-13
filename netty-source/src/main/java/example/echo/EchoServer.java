@@ -8,8 +8,10 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
+@Slf4j
 public class EchoServer {
 
     static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
@@ -42,8 +44,14 @@ public class EchoServer {
                 });
 
             // Start the server.
-            ChannelFuture f = b.bind(PORT).sync();
-
+            ChannelFuture f = b.bind(PORT);
+            f.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    log.info("服务启动成功");
+                }
+            });
+            f.sync();
             // Wait until the server socket is closed.
             f.channel().closeFuture().sync();
         } finally {

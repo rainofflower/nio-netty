@@ -1,7 +1,7 @@
 server:
   port: 8010
 logging:
-  config: classpath:logback.xml
+  config: classpath:logback-spring.xml
 netty:
   boss-threads: 1
   worker-threads: 24
