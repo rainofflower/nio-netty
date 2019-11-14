@@ -81,7 +81,7 @@ public class MultiThreadEchoServerReactor {
                 /**
                  * state锁未被占用才允许执行selector.select()
                  * 此处加锁原因：
-                 * 如果查询IO可读事件线程中的selector() 和
+                 * 如果查询IO可读事件线程中的selector 和
                  * 监听连接 线程在接收到新连接之后根据选择策略选中的selector是同一个selector，
                  * 那么查询IO可读的操作-执行selector.select()方法 会阻塞 收到连接之后注册可读事件的操作-执行SelectableChannel.register(Selector selector, ...)方法
                  * 因为同一个selector在执行以上两个操作都会获取selector中的publicKeys监视器锁，而selectors.select()方法本身又是个阻塞的方法，
@@ -91,7 +91,9 @@ public class MultiThreadEchoServerReactor {
                  * 也就是监听连接事件的线程subReactor[0]执行选中的selector去注册通道可读事件。
                  * 具体点：监听连接事件的子反应器线程执行new MultiThreadEchoHandler(subReactors[next.get()],channel)方法，使用next.get()来选择selector，
                  * 被选中的 selector 可能已经在包含该 selector 实例的子反应器线程中执行selector.select()方法，此时 new MultiThreadEchoHandler(subReactors[next.get()],channel)
-                 * 方法中的 sk = socketChannel.register(selector, 0)就会被阻塞
+                 * 方法中的 sk = socketChannel.register(selector, 0)就会被阻塞。
+                 *
+                 * 另外，subReactor[0]中的selector本身同时用来select和注册可读事件不会发生cas争锁的问题，因为两者在同一个线程中执行
                  */
                 if(STATE.compareAndSet(this,FREE,SELECT)){
                     try {
