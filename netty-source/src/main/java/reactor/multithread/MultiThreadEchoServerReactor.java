@@ -78,7 +78,21 @@ public class MultiThreadEchoServerReactor {
 
         public void run() {
             while(!Thread.interrupted()){
-                //state锁未被占用才允许执行selector.select()
+                /**
+                 * state锁未被占用才允许执行selector.select()
+                 * 此处加锁原因：
+                 * 如果查询IO可读事件线程中的selector() 和
+                 * 监听连接 线程在接收到新连接之后根据选择策略选中的selector是同一个selector，
+                 * 那么查询IO可读的操作-执行selector.select()方法 会阻塞 收到连接之后注册可读事件的操作-执行SelectableChannel.register(Selector selector, ...)方法
+                 * 因为同一个selector在执行以上两个操作都会获取selector中的publicKeys监视器锁，而selectors.select()方法本身又是个阻塞的方法，
+                 * 一旦执行了selectors.select(),获取到publicKeys监视器锁之后并且阻塞了，锁还未释放之前，执行channel的register就会因为获取不到锁也发生阻塞
+                 *
+                 * 结合自己的这份多线程reactor的实现来说，就是除了监听连接事件的subReactors[0],其它的subReactor线程执行select方法会阻塞主线程，
+                 * 也就是监听连接事件的线程subReactor[0]执行选中的selector去注册通道可读事件。
+                 * 具体点：监听连接事件的子反应器线程执行new MultiThreadEchoHandler(subReactors[next.get()],channel)方法，使用next.get()来选择selector，
+                 * 被选中的 selector 可能已经在包含该 selector 实例的子反应器线程中执行selector.select()方法，此时 new MultiThreadEchoHandler(subReactors[next.get()],channel)
+                 * 方法中的 sk = socketChannel.register(selector, 0)就会被阻塞
+                 */
                 if(STATE.compareAndSet(this,FREE,SELECT)){
                     try {
                         int keyCount = selector.select();
