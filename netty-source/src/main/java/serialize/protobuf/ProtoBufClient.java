@@ -1,6 +1,5 @@
 package serialize.protobuf;
 
-import com.alibaba.fastjson.JSONObject;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -10,18 +9,13 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
-import io.netty.handler.codec.string.StringEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import serialize.json.JsonMsg;
-
-import java.nio.charset.Charset;
 
 /**
- * json协议通信（json序列化） - 客户端
+ * Protobuf序列化协议 - 客户端
  */
 @Slf4j
 public class ProtoBufClient {

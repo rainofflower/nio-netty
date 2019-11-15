@@ -13,7 +13,7 @@ import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import org.junit.Test;
 
 /**
- * Protobuf协议
+ * Protobuf序列化协议服务端
  */
 public class ProtoBufServer {
     static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
