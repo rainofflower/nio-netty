@@ -37,7 +37,7 @@ public class NormalTest {
         pool.submit(()->{
             try {
                 log.info("处理任务中...");
-                Thread.sleep(2000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 //promise.setFailure(e);
@@ -52,7 +52,9 @@ public class NormalTest {
             }
         });
         try {
-            promise.sync();
+//            promise.sync();
+            boolean flag = promise.await(6, TimeUnit.SECONDS);
+            log.info("执行成功？{}",flag);
 //            promise.await();
         } catch (Exception e) {
             log.info("捕获到sync抛出的异常：{}",e);
